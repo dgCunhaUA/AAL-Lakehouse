@@ -1,0 +1,23 @@
+source:
+    type: s3
+    config:
+        path_specs:
+            - include: 's3://raw-zone/*.*'
+            - include: 's3://refined-zone/*.*'
+            - include: 's3://trusted-zone/*.*'
+            - include: 's3://refined-zone/refined_hr_data/*.parquet'
+
+        aws_config:
+          aws_endpoint_url: "http://localhost:9000"
+          #aws_access_key_id: datahub-access-key
+          #aws_secret_access_key: datahub1234
+          aws_access_key_id: minioadmin
+          aws_secret_access_key: minioadmin
+          aws_region: local
+
+        env: PROD
+        profiling:
+            enabled: true
+
+
+# sink configs

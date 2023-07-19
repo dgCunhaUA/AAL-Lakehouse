@@ -1,0 +1,29 @@
+apiVersion: 1
+
+# List of data sources to delete from the database.
+deleteDatasources:
+  - name: Infinity
+    orgId: 1
+  - name: Mosquitto MQTT
+    orgId: 1
+
+datasources:
+  - id: 1
+    orgId: 1
+    name: "Infinity"
+    type: "yesoreyeram-infinity-datasource"
+    uid: "xTFDDwLVz"
+    url: ""
+    basicAuth: false
+    basicAuthUser: ""
+    isDefault: true
+    jsonData:
+      global_queries: []
+    readOnly: false
+
+  - name: Mosquitto MQTT
+    type: grafana-mqtt-datasource
+    ordId: 1
+    uid: eb8bb846-ca0a-4db8-81ea-0fb8ebe6420f
+    url: tcp://host.docker.internal:1883
+    editable: true

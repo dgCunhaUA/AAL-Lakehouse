@@ -1,0 +1,15 @@
+pip:
+python3-opencv
+delta
+pyspark
+matplotlib
+mediapipe
+scipy
+heartpy
+neurokit2
+delta-spark
+moviepy
+
+apt:
+default-jre
+default-jdk

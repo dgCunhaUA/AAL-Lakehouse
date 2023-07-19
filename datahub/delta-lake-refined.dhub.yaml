@@ -1,0 +1,16 @@
+source:
+    type: "delta-lake"
+    config:
+      base_path:  "s3://refined-zone"
+      relative_path: "refined_hr_data"
+      #relative_path: "refined_breathing_data"
+      #relative_path: "refined_psd_frequencies_data"
+      #relative_path: "refined_rri_histogram_data"
+      s3:
+        aws_config:
+          aws_endpoint_url: "http://localhost:9000"
+          aws_access_key_id: minioadmin
+          aws_secret_access_key: minioadmin
+          aws_region: local
+
+

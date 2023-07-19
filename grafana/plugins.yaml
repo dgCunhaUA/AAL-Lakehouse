@@ -1,0 +1,7 @@
+apiVersion: 1
+
+apps:
+  # <string> the type of app, plugin identifier. Required
+  - type: yesoreyeram-infinity-datasources
+  #- type: hamedkarbasi93-kafka-datasource
+  - type: grafana-mqtt-datasource

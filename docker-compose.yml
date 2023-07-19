@@ -1,0 +1,71 @@
+version: '2'
+services:
+
+  minio:
+    image: quay.io/minio/minio
+    ports:
+      - "9000:9000"
+      - "9090:9090"
+    volumes:
+      - /home/mscdiogo/lakehouse/minio_data:/data
+    environment:
+      - "MINIO_ROOT_USER=admin"               # TODO: Change
+      - "MINIO_ROOT_PASSWORD=admin1234"
+    command: server /data --console-address ":9090"
+
+  grafana:
+    image: grafana/grafana-oss:latest-ubuntu
+    #container_name: grafana
+    platform: 'linux/amd64'
+    ports:
+      - "3000:3000"
+    volumes:
+      - /home/mscdiogo/lakehouse/grafana/hrv_dashboard.json:/var/lib/grafana/dashboards/HRV Dashboard.json
+      - /home/mscdiogo/lakehouse/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - /home/mscdiogo/lakehouse/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+    environment:
+      - GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource,natel-plotly-panel
+    restart: always
+    depends_on:
+      - minio
+      - delta_sharing_server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  delta_sharing_server:
+    image: deltaio/delta-sharing-server:0.6.2
+    container_name: delta-sharing-server
+    ports:
+      - "8080:8080"
+    volumes:
+      - /home/mscdiogo/lakehouse/delta-sharing/delta-sharing-server.yaml:/config/delta-sharing-server-config.yaml
+      - /home/mscdiogo/lakehouse/delta-sharing/core-site.xml:/opt/docker/conf/core-site.xml  # TODO: Warning IP
+    environment:
+      - AWS_ACCESS_KEY_ID=minioadmin          # TODO: Change
+      - AWS_SECRET_ACCESS_KEY=minioadmin
+    command: "--config /config/delta-sharing-server-config.yaml"
+    depends_on:
+      - minio
+
+  flask_api:
+    build: 
+      context: backend
+      dockerfile: Dockerfile.flask
+    ports:
+      - 5000:5000
+    environment:
+      - FLASK_ENV=development
+      - PORT=5000
+    depends_on:
+      - delta_sharing_server
+
+  #mosquitto:
+  #  image: eclipse-mosquitto
+  #  ports:
+  #    - 1883:1883
+  #  volumes:
+  #    - /home/mscdiogo/lakehouse/mosquitto/conf/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  # TODO: File watcher
+
+  # TODO: Edge computing for video?

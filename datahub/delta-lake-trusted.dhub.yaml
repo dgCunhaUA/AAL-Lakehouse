@@ -1,0 +1,13 @@
+source:
+    type: "delta-lake"
+    config:
+      base_path:  "s3://trusted-zone"
+      relative_path: "trusted_working_data"
+      s3:
+        aws_config:
+          aws_endpoint_url: "http://localhost:9000"
+          aws_access_key_id: minioadmin
+          aws_secret_access_key: minioadmin
+          aws_region: local
+
+
