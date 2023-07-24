@@ -143,7 +143,7 @@
           "summarizeBy": "",
           "summarizeExpression": "",
           "type": "json",
-          "url": "http://host.docker.internal:5000/subject/${subject_uuid}/hr/$__from/$__to/${video_id}",
+          "url": "http://host.docker.internal:5000/subject/${subject_uuid}/hr",
           "url_options": {
             "data": "",
             "method": "GET"
@@ -156,7 +156,7 @@
     {
       "datasource": {
         "type": "grafana-mqtt-datasource",
-        "uid": "b620ef7e-0698-4064-b2c1-4705073d1dc7"
+        "uid": "b7b39e7d-fc3e-4608-9ea7-dda1c20bac22"
       },
       "fieldConfig": {
         "defaults": {
@@ -199,6 +199,7 @@
         "y": 1
       },
       "id": 16,
+      "maxDataPoints": 6000,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -218,7 +219,7 @@
         {
           "datasource": {
             "type": "grafana-mqtt-datasource",
-            "uid": "b620ef7e-0698-4064-b2c1-4705073d1dc7"
+            "uid": "b7b39e7d-fc3e-4608-9ea7-dda1c20bac22"
           },
           "refId": "A",
           "topic": "bpm"
@@ -344,7 +345,7 @@
           "root_selector": "",
           "source": "url",
           "type": "json",
-          "url": "http://host.docker.internal:5000/subject/${subject_uuid}/breathing_signal/$__from/$__to/$video_id",
+          "url": "http://host.docker.internal:5000/subject/${subject_uuid}/breathing_signal",
           "url_options": {
             "data": "",
             "method": "GET"
@@ -356,8 +357,8 @@
     },
     {
       "datasource": {
-        "type": "grafana-mqtt-datasource",
-        "uid": "b620ef7e-0698-4064-b2c1-4705073d1dc7"
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "xTFDDwLVz"
       },
       "fieldConfig": {
         "defaults": {
@@ -409,12 +410,24 @@
       "pluginVersion": "9.5.2",
       "targets": [
         {
+          "columns": [],
           "datasource": {
-            "type": "grafana-mqtt-datasource",
-            "uid": "b620ef7e-0698-4064-b2c1-4705073d1dc7"
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "xTFDDwLVz"
           },
+          "filters": [],
+          "format": "table",
+          "global_query_id": "my-query-1",
+          "parser": "backend",
           "refId": "A",
-          "topic": "bpm"
+          "root_selector": "",
+          "source": "url",
+          "type": "json",
+          "url": "http://host.docker.internal:5000/subject/${subject_uuid}/breathing",
+          "url_options": {
+            "data": "",
+            "method": "GET"
+          }
         }
       ],
       "title": "Breathing Rate",
@@ -521,7 +534,7 @@
           "root_selector": "",
           "source": "url",
           "type": "json",
-          "url": "http://host.docker.internal:5000/subject/${subject_uuid}/rri/$video_id",
+          "url": "http://host.docker.internal:5000/subject/${subject_uuid}/rri",
           "url_options": {
             "data": "",
             "method": "GET"
@@ -647,7 +660,7 @@
           "root_selector": "",
           "source": "url",
           "type": "json",
-          "url": "http://host.docker.internal:5000/subject/${subject_uuid}/breathing_spectogram/$video_id",
+          "url": "http://host.docker.internal:5000/subject/${subject_uuid}/breathing_spectogram",
           "url_options": {
             "data": "",
             "method": "GET"
@@ -866,34 +879,12 @@
           "filters": [],
           "format": "table",
           "global_query_id": "my-query-1",
-          "hide": true,
           "parser": "backend",
           "refId": "A",
           "root_selector": "",
           "source": "inline",
           "type": "json",
           "url": "https://github.com/yesoreyeram/grafana-infinity-datasource/blob/main/testdata/users.json",
-          "url_options": {
-            "data": "",
-            "method": "GET"
-          }
-        },
-        {
-          "columns": [],
-          "datasource": {
-            "type": "yesoreyeram-infinity-datasource",
-            "uid": "xTFDDwLVz"
-          },
-          "filters": [],
-          "format": "table",
-          "global_query_id": "",
-          "hide": false,
-          "parser": "backend",
-          "refId": "B",
-          "root_selector": "",
-          "source": "url",
-          "type": "json",
-          "url": "http://host.docker.internal:5000/subject/${subject_uuid}/psd_freq/$video_id",
           "url_options": {
             "data": "",
             "method": "GET"
@@ -905,7 +896,7 @@
       "version": 1
     }
   ],
-  "refresh": false,
+  "refresh": "",
   "revision": 1,
   "schemaVersion": 38,
   "style": "dark",
@@ -915,8 +906,8 @@
       {
         "current": {
           "selected": false,
-          "text": "1",
-          "value": "1"
+          "text": "2",
+          "value": "2"
         },
         "datasource": {
           "type": "yesoreyeram-infinity-datasource",
@@ -953,48 +944,6 @@
         "skipUrlSync": false,
         "sort": 0,
         "type": "query"
-      },
-      {
-        "current": {
-          "selected": true,
-          "text": "None",
-          "value": "None"
-        },
-        "datasource": {
-          "type": "yesoreyeram-infinity-datasource",
-          "uid": "xTFDDwLVz"
-        },
-        "definition": "Infinity- (infinity) json",
-        "hide": 0,
-        "includeAll": false,
-        "label": "Video",
-        "multi": false,
-        "name": "video_id",
-        "options": [],
-        "query": {
-          "infinityQuery": {
-            "columns": [],
-            "filters": [],
-            "format": "table",
-            "parser": "backend",
-            "refId": "variable",
-            "root_selector": "",
-            "source": "url",
-            "type": "json",
-            "url": "http://host.docker.internal:5000/subject/${subject_uuid}/sessions",
-            "url_options": {
-              "data": "",
-              "method": "GET"
-            }
-          },
-          "query": "",
-          "queryType": "infinity"
-        },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 0,
-        "type": "query"
       }
     ]
   },
@@ -1002,12 +951,10 @@
     "from": "now-1h",
     "to": "now"
   },
-  "timepicker": {
-    "hidden": false
-  },
+  "timepicker": {},
   "timezone": "",
   "title": "HRV Dashboard",
-  "uid": "ayTHf_LVk",
+  "uid": "dyTHf_LVk",
   "version": 1,
   "weekStart": ""
 }

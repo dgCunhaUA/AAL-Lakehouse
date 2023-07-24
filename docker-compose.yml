@@ -3,6 +3,7 @@ services:
 
   minio:
     image: quay.io/minio/minio
+    container_name: minio
     ports:
       - "9000:9000"
       - "9090:9090"
@@ -12,15 +13,19 @@ services:
       - "MINIO_ROOT_USER=admin"               # TODO: Change
       - "MINIO_ROOT_PASSWORD=admin1234"
     command: server /data --console-address ":9090"
+    networks:
+      lakehouse:
+        ipv4_address: 10.10.5.2
 
   grafana:
     image: grafana/grafana-oss:latest-ubuntu
-    #container_name: grafana
+    container_name: grafana
     platform: 'linux/amd64'
     ports:
       - "3000:3000"
     volumes:
       - /home/mscdiogo/lakehouse/grafana/hrv_dashboard.json:/var/lib/grafana/dashboards/HRV Dashboard.json
+      #- /home/mscdiogo/lakehouse/grafana/hrv_dashboard_v2.json:/var/lib/grafana/dashboards/HRV Dashboard 2.json
       - /home/mscdiogo/lakehouse/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
       - /home/mscdiogo/lakehouse/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
     environment:
@@ -31,6 +36,9 @@ services:
       - delta_sharing_server
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      lakehouse:
+        ipv4_address: 10.10.5.3
 
   delta_sharing_server:
     image: deltaio/delta-sharing-server:0.6.2
@@ -46,8 +54,12 @@ services:
     command: "--config /config/delta-sharing-server-config.yaml"
     depends_on:
       - minio
+    networks:
+      lakehouse:
+        ipv4_address: 10.10.5.4
 
   flask_api:
+    container_name: flask-api
     build: 
       context: backend
       dockerfile: Dockerfile.flask
@@ -58,6 +70,9 @@ services:
       - PORT=5000
     depends_on:
       - delta_sharing_server
+    networks:
+      lakehouse:
+        ipv4_address: 10.10.5.5
 
   #mosquitto:
   #  image: eclipse-mosquitto
@@ -69,3 +84,13 @@ services:
   # TODO: File watcher
 
   # TODO: Edge computing for video?
+
+
+networks:
+  lakehouse:
+    name: lakehouse_network
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.5.0/24
+          gateway: 10.10.5.1

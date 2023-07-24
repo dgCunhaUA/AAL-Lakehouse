@@ -33,6 +33,7 @@ builder = pyspark.sql.SparkSession.builder \
     .config("spark.databricks.delta.properties.defaults.enableChangeDataFeed", "true") \
 
 spark = configure_spark_with_delta_pip(builder, ["org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.1", "org.apache.hadoop:hadoop-aws:3.3.1"]).getOrCreate()
+spark.sparkContext.setLogLevel("ERROR")
 
 client = Minio("localhost:9000", access_key="minioadmin", secret_key="minioadmin", secure=False)
 
@@ -318,11 +319,11 @@ def process_batch(df, epoch_id):
 		working_data = dict()
 		for key in list(tmp_working_data.keys()):
 			if isinstance(tmp_working_data[key], np.ndarray):
-				if isinstance(tmp_working_data[key][0], np.float):
+				if isinstance(tmp_working_data[key][0], float):
 					working_data[key] = [float(v) for v in tmp_working_data[key]]
-				elif isinstance(tmp_working_data[key][0], np.int):
+				elif isinstance(tmp_working_data[key][0], int):
 					working_data[key] = [int(v) for v in tmp_working_data[key]]
-			elif isinstance(tmp_working_data[key], np.float):
+			elif isinstance(tmp_working_data[key], float):
 				working_data[key] = float(tmp_working_data[key])
 
 

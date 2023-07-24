@@ -22,8 +22,8 @@ datasources:
     readOnly: false
 
   - name: Mosquitto MQTT
-    type: grafana-mqtt-datasource
+    type: "grafana-mqtt-datasource"
     ordId: 1
     uid: eb8bb846-ca0a-4db8-81ea-0fb8ebe6420f
-    url: tcp://host.docker.internal:1883
+    URI: tcp://host.docker.internal:1883
     editable: true

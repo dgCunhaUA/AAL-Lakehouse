@@ -10,8 +10,6 @@ import requests
 
 app = Flask(__name__)
 
-#PROFILE_FILE = "/Users/cunha/Desktop/Dissertação/Dissertacao/code/delta-sharing/docker-datasets.share"
-PROFILE_FILE = "/home/mscdiogo/lakehouse/backend/docker-datasets.share"
 PROFILE_FILE = "./docker-datasets.share"
 HR_DATA = "#grafana.dashboard.hr_data"
 BREATHING_DATA = "#grafana.dashboard.breathing_data"
@@ -21,7 +19,6 @@ SESSION_DATA = "#grafana.dashboard.sessions_data"
 
 # Create a SharingClient.
 client = delta_sharing.SharingClient(PROFILE_FILE)
-
 
 @app.route("/")
 def alive():

@@ -3,6 +3,6 @@
 <configuration>
 <property>
   <name>fs.s3a.endpoint</name>
-  <value>http://10.10.4.2:9000</value>
+  <value>http://10.10.5.2:9000</value>
 </property>
 </configuration>

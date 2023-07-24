@@ -1,5 +1,0 @@
-{
-  "shareCredentialsVersion": 1,
-  "endpoint": "http://delta-sharing-server:8080/delta-sharing/",
-  "bearerToken": ""
-}
