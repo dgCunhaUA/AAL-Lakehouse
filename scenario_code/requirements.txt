@@ -1,0 +1,12 @@
+heartpy==1.2.7
+matplotlib==3.7.1
+mediapipe==0.10.0
+minio==7.1.15
+moviepy==1.0.3
+neurokit2==0.2.4
+numpy==1.21.6
+paho_mqtt==1.6.1
+pyspark==3.4.1
+scipy==1.10.1
+opencv-python
+delta-spark

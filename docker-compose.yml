@@ -18,18 +18,21 @@ services:
         ipv4_address: 10.10.5.2
 
   grafana:
-    image: grafana/grafana-oss:latest-ubuntu
+    #image: grafana/grafana-oss:latest-ubuntu
+    image: grafana/grafana-oss:10.0.2-ubuntu
+    user: "0:0"
     container_name: grafana
     platform: 'linux/amd64'
     ports:
       - "3000:3000"
     volumes:
-      - /home/mscdiogo/lakehouse/grafana/hrv_dashboard.json:/var/lib/grafana/dashboards/HRV Dashboard.json
+      #- /home/mscdiogo/lakehouse/grafana/hrv_dashboard.json:/var/lib/grafana/dashboards/HRV Dashboard.json
       #- /home/mscdiogo/lakehouse/grafana/hrv_dashboard_v2.json:/var/lib/grafana/dashboards/HRV Dashboard 2.json
-      - /home/mscdiogo/lakehouse/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
-      - /home/mscdiogo/lakehouse/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      #- /home/mscdiogo/lakehouse/grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      #- /home/mscdiogo/lakehouse/grafana/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - /home/mscdiogo/lakehouse/grafana/grafana-storage:/var/lib/grafana
     environment:
-      - GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource,natel-plotly-panel
+      - GF_INSTALL_PLUGINS=yesoreyeram-infinity-datasource,natel-plotly-panel,grafana-mqtt-datasource
     restart: always
     depends_on:
       - minio
@@ -81,9 +84,19 @@ services:
   #  volumes:
   #    - /home/mscdiogo/lakehouse/mosquitto/conf/mosquitto.conf:/mosquitto/config/mosquitto.conf
 
-  # TODO: File watcher
+  # TODO: Video processer
+  video_processer:
+    container_name: video-processer
+    build: 
+      context: scenario_code
+      dockerfile: Dockerfile.video_processer
+    depends_on:
+      - delta_sharing_server
+      - minio
+    networks:
+      lakehouse:
+        ipv4_address: 10.10.5.6
 
-  # TODO: Edge computing for video?
 
 
 networks:
@@ -94,3 +107,7 @@ networks:
       config:
         - subnet: 10.10.5.0/24
           gateway: 10.10.5.1
+
+volumes:
+  grafana-storage:
+    external: true

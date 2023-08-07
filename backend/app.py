@@ -7,6 +7,7 @@ import numpy as np
 from datetime import datetime, timedelta
 import pandas as pd
 import requests
+import json
 
 app = Flask(__name__)
 
@@ -16,6 +17,8 @@ BREATHING_DATA = "#grafana.dashboard.breathing_data"
 RRI_DATA = "#grafana.dashboard.rri_histogram_data"
 PSD_FREQ_DATA = "#grafana.dashboard.psd_frequencies_data"
 SESSION_DATA = "#grafana.dashboard.sessions_data"
+HEARTPY_MEASURES = "#grafana.dashboard.heartpy_measures"
+
 
 # Create a SharingClient.
 client = delta_sharing.SharingClient(PROFILE_FILE)
@@ -216,64 +219,25 @@ def get_rri_by_uuid(subject_uuid, video):
 
     last_row = pdf.tail(1)
 
-    bins = last_row.iloc[0]["bins"]
-    bins = bins[:-1]
-    counts = last_row.iloc[0]["counts"]
-    assert len(bins) == len(counts), "Bins and counts with different lengths"
-
     data = []
-    for i in range(len(bins)):
+    try:
+        bins = last_row.iloc[0]["bins"]
+        bins = bins[:-1]
+        counts = last_row.iloc[0]["counts"]
+        assert len(bins) == len(counts), "Bins and counts with different lengths"
 
-        if i > 0:
-            bucket = str(round(bins[i - 1])) + "-" + str(round(bins[i]))
-        else:
-            bucket = "0-" + str(round(bins[i]))
+        for i in range(len(bins)):
 
-        data.append({"bucket": bucket, "count": int(counts[i])})
+            if i > 0:
+                bucket = str(round(bins[i - 1])) + "-" + str(round(bins[i]))
+            else:
+                bucket = "0-" + str(round(bins[i]))
+
+            data.append({"bucket": bucket, "count": int(counts[i])})
+    except:
+        pass
 
     return jsonify(data)
-
-
-""" @app.route("/subject/<subject_uuid>/bpm")
-def get_bpm_by_uuid(subject_uuid):
-    table_url = PROFILE_FILE + HR_DATA
-
-    pdf = delta_sharing.load_as_pandas(table_url)
-    pdf = pdf.loc[pdf["subject_uuid"] == subject_uuid]
-
-    data = []
-    for i, row in pdf.iterrows():
-        data.append(
-            {
-                "bpm": row["bpm"],
-                "time": row["start_timestamp"].isoformat(
-                    timespec="microseconds", sep=" "
-                ),
-            }
-        ) 
-        
-    return jsonify(data)
-
-@app.route("/subject/<subject_uuid>/breathing")
-def get_breathing_by_uuid(subject_uuid):
-    table_url = PROFILE_FILE + BREATHING_DATA
-
-    pdf = delta_sharing.load_as_pandas(table_url)
-    pdf = pdf.loc[pdf["subject_uuid"] == subject_uuid]
-
-    data = []
-    for i, row in pdf.iterrows():
-        data.append(
-            {
-                "breathing": row["breathing_rate"],
-                "time": row["start_timestamp"].isoformat(
-                    timespec="microseconds", sep=" "
-                ),
-            }
-        ) 
-        
-    return jsonify(data) """
-
 
 @app.route("/subject/<subject_uuid>/psd_freq/<video>")
 def get_psd_freq_by_uuid(subject_uuid, video):
@@ -301,6 +265,215 @@ def get_psd_freq_by_uuid(subject_uuid, video):
         
     return jsonify(data)
 
+@app.route("/subject/<subject_uuid>/bpm/<time_from>/<time_to>/<video>")
+def get_bpm_by_uuid(subject_uuid, time_from, time_to, video):
+    time_from = pd.to_datetime(int(time_from) / 1000, unit='s')
+    time_to = pd.to_datetime(int(time_to) / 1000, unit='s')
+
+    table_url = PROFILE_FILE + HR_DATA
+
+    pdf = delta_sharing.load_as_pandas(table_url)
+    if video == "None":
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["start_timestamp"] > time_from) & (pdf["start_timestamp"] < time_to)]
+    else:
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["video"] == video)]
+
+    data = []
+    for i, row in pdf.iterrows():
+        data.append(
+            {
+                "bpm": row["bpm"]
+            }
+        ) 
+        
+    return jsonify(data)
+
+@app.route("/subject/<subject_uuid>/breathing/<time_from>/<time_to>/<video>")
+def get_breathing_by_uuid(subject_uuid, time_from, time_to, video):
+    time_from = pd.to_datetime(int(time_from) / 1000, unit='s')
+    time_to = pd.to_datetime(int(time_to) / 1000, unit='s')
+
+    table_url = PROFILE_FILE + BREATHING_DATA
+
+    pdf = delta_sharing.load_as_pandas(table_url)
+    if video == "None":
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["start_timestamp"] > time_from) & (pdf["start_timestamp"] < time_to)]
+    else:
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["video"] == video)]
+
+    data = []
+    for i, row in pdf.iterrows():
+        data.append(
+            {
+                "breathing": row["breathing_rate"]
+            }
+        ) 
+        
+    return jsonify(data)
+ 
+# TODO: COMPLETE (change hr table to hrv table) 
+@app.route("/subject/<subject_uuid>/rmssd/<time_from>/<time_to>/<video>")
+def get_rmssd_by_uuid(subject_uuid, time_from, time_to, video):
+    time_from = pd.to_datetime(int(time_from) / 1000, unit='s')
+    time_to = pd.to_datetime(int(time_to) / 1000, unit='s')
+
+    table_url = PROFILE_FILE + HEARTPY_MEASURES
+
+    pdf = delta_sharing.load_as_pandas(table_url)
+    if video == "None":
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["start_timestamp"] > time_from) & (pdf["start_timestamp"] < time_to)]
+    else:
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["video"] == video)]
+
+    data = []
+    for i, row in pdf.iterrows():
+        data.append(
+            {
+                "rmssd": row["rmssd"]
+            }
+        ) 
+        
+    return jsonify(data)
+
+@app.route("/subject/<subject_uuid>/sdnn/<time_from>/<time_to>/<video>")
+def get_sdnn_by_uuid(subject_uuid, time_from, time_to, video):
+    time_from = pd.to_datetime(int(time_from) / 1000, unit='s')
+    time_to = pd.to_datetime(int(time_to) / 1000, unit='s')
+
+    table_url = PROFILE_FILE + HEARTPY_MEASURES
+
+    pdf = delta_sharing.load_as_pandas(table_url)
+    if video == "None":
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["start_timestamp"] > time_from) & (pdf["start_timestamp"] < time_to)]
+    else:
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["video"] == video)]
+
+    data = []
+    for i, row in pdf.iterrows():
+        data.append(
+            {
+                "sdnn": row["sdnn"]
+            }
+        ) 
+        
+    return jsonify(data)
+
+
+@app.route("/subject/<subject_uuid>/pnn50/<time_from>/<time_to>/<video>")
+def get_pnn50_by_uuid(subject_uuid, time_from, time_to, video):
+    time_from = pd.to_datetime(int(time_from) / 1000, unit='s')
+    time_to = pd.to_datetime(int(time_to) / 1000, unit='s')
+
+    table_url = PROFILE_FILE + HEARTPY_MEASURES
+
+    pdf = delta_sharing.load_as_pandas(table_url)
+    if video == "None":
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["start_timestamp"] > time_from) & (pdf["start_timestamp"] < time_to)]
+    else:
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["video"] == video)]
+
+    data = []
+    for i, row in pdf.iterrows():
+        data.append(
+            {
+                "pnn50": row["pnn50"]
+            }
+        ) 
+        
+    return jsonify(data)
+
+@app.route("/subject/<subject_uuid>/pnn20/<time_from>/<time_to>/<video>")
+def get_pnn20_by_uuid(subject_uuid, time_from, time_to, video):
+    time_from = pd.to_datetime(int(time_from) / 1000, unit='s')
+    time_to = pd.to_datetime(int(time_to) / 1000, unit='s')
+
+    table_url = PROFILE_FILE + HEARTPY_MEASURES
+
+    pdf = delta_sharing.load_as_pandas(table_url)
+    if video == "None":
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["start_timestamp"] > time_from) & (pdf["start_timestamp"] < time_to)]
+    else:
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["video"] == video)]
+
+    data = []
+    for i, row in pdf.iterrows():
+        data.append(
+            {
+                "pnn20": row["pnn20"]
+            }
+        ) 
+        
+    return jsonify(data)
+
+
+@app.route("/subject/<subject_uuid>/sd1/<time_from>/<time_to>/<video>")
+def get_sd1_by_uuid(subject_uuid, time_from, time_to, video):
+    time_from = pd.to_datetime(int(time_from) / 1000, unit='s')
+    time_to = pd.to_datetime(int(time_to) / 1000, unit='s')
+
+    table_url = PROFILE_FILE + HEARTPY_MEASURES
+
+    pdf = delta_sharing.load_as_pandas(table_url)
+    if video == "None":
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["start_timestamp"] > time_from) & (pdf["start_timestamp"] < time_to)]
+    else:
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["video"] == video)]
+
+    data = []
+    for i, row in pdf.iterrows():
+        data.append(
+            {
+                "sd1": row["sd1"]
+            }
+        ) 
+        
+    return jsonify(data)
+
+@app.route("/subject/<subject_uuid>/sd2/<time_from>/<time_to>/<video>")
+def get_sd2_by_uuid(subject_uuid, time_from, time_to, video):
+    time_from = pd.to_datetime(int(time_from) / 1000, unit='s')
+    time_to = pd.to_datetime(int(time_to) / 1000, unit='s')
+
+    table_url = PROFILE_FILE + HEARTPY_MEASURES
+
+    pdf = delta_sharing.load_as_pandas(table_url)
+    if video == "None":
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["start_timestamp"] > time_from) & (pdf["start_timestamp"] < time_to)]
+    else:
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["video"] == video)]
+
+    data = []
+    for i, row in pdf.iterrows():
+        data.append(
+            {
+                "sd2": row["sd2"]
+            }
+        ) 
+        
+    return jsonify(data)
+
+@app.route("/subject/<subject_uuid>/sd1_sd2/<time_from>/<time_to>/<video>")
+def get_sd1_sd2_by_uuid(subject_uuid, time_from, time_to, video):
+    time_from = pd.to_datetime(int(time_from) / 1000, unit='s')
+    time_to = pd.to_datetime(int(time_to) / 1000, unit='s')
+
+    table_url = PROFILE_FILE + HEARTPY_MEASURES
+
+    pdf = delta_sharing.load_as_pandas(table_url)
+    if video == "None":
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["start_timestamp"] > time_from) & (pdf["start_timestamp"] < time_to)]
+    else:
+        pdf = pdf.loc[(pdf["subject_uuid"] == subject_uuid) & (pdf["video"] == video)]
+
+    data = []
+    for i, row in pdf.iterrows():
+        data.append(
+            {
+                "sd1/sd2": row["sd1/sd2"]
+            }
+        ) 
+        
+    return jsonify(data)
 
 
 @app.route("/subject/<subject_uuid>/sessions")
@@ -329,15 +502,84 @@ def get_sessions_by_uuid(subject_uuid):
     return jsonify(data)
 
 
-@app.route("/subject/<subject_uuid>/hr/alert")
+""" def are_timestamps_in_same_hour_day_month_year(timestamp1, hourly_timestamps):
+
+    for timestamp2 in hourly_timestamps:
+        if timestamp1.year == timestamp2.year and \
+           timestamp1.month == timestamp2.month and \
+           timestamp1.day == timestamp2.day and \
+           timestamp1.hour == timestamp2.hour:
+
+           print("ola")
+           return """
+
+def are_timestamps_in_same_hour_day_month_year(timestamp1, timestamp2):
+
+    return timestamp1.year == timestamp2.year and \
+           timestamp1.month == timestamp2.month and \
+           timestamp1.day == timestamp2.day
+           #timestamp1.hour == timestamp2.hour
+
+@app.route("/subject/<subject_uuid>/sessions_history")
+def get_sessions_history_by_uuid(subject_uuid):
+
+    # Get the current year
+    current_year = datetime.now().year
+
+    # Define the start date and time
+    # Create a datetime object for the beginning of the year
+    start_date = datetime(current_year, 1, 1, 0, 0, 0)        
+
+    # Calculate the end date by adding 5 days to the start date
+    end_date = start_date + timedelta(days=364)            
+
+    # Generate timestamps for each hour between the start and end dates
+    current_date = start_date
+    hourly_timestamps = dict()
+
+    data = []
+
+    while current_date <= end_date:
+        tmp = dict()
+        tmp["time"] = current_date
+
+        for i in range(24):
+            tmp[i] = 0
+        
+        data.append(tmp)
+        current_date += timedelta(days=1)
+
+
+    table_url = PROFILE_FILE + SESSION_DATA
+
+    pdf = delta_sharing.load_as_pandas(table_url)
+    pdf = pdf.loc[pdf["subject_uuid"] == subject_uuid]
+
+    for i, row in pdf.iterrows():
+        timestamp = row["start_timestamp"]
+
+        for j in data:
+            if are_timestamps_in_same_hour_day_month_year(j["time"], timestamp):
+                hour = timestamp.hour
+                j[hour] += 1
+
+
+    for j in data:
+        value = j["time"]
+        del j["time"]
+        j["time"] = str(datetime.strftime(value, "%Y-%m-%d"))
+
+    return json.dumps(data)
+
+
+""" @app.route("/subject/<subject_uuid>/hr/alert")
 def get_hr_by_uuid_alert(subject_uuid):
     current_time = datetime.now()
     #new_time = current_time - timedelta(minutes=1)
-    new_time = current_time - timedelta(days=50)
+    new_time = current_time - timedelta(days=5)
     start_timestamp = new_time.strftime("%Y-%m-%d %H:%M:%S")
 
     table_url = PROFILE_FILE + HR_DATA
-    #pdf = delta_sharing.load_as_pandas(table_url)
 
     data = []
     try:
@@ -369,8 +611,34 @@ def get_hr_by_uuid_alert(subject_uuid):
         print("Error Code:", e.response.json()["errorCode"])
         print("Message:", e.response.json()["message"])
 
-    return jsonify(data)
+    return jsonify(data) """
     
+
+@app.route("/subject/<subject_uuid>/bpm/alert")
+def get_bpm_alert_by_uuid(subject_uuid):
+    current_time = datetime.now()
+    #new_time = current_time - timedelta(minutes=1)
+    new_time = current_time - timedelta(days=5)
+    start_timestamp = new_time.strftime("%Y-%m-%d %H:%M:%S")
+
+    table_url = PROFILE_FILE + HR_DATA
+
+    data = []
+    try:
+        pdf = delta_sharing.load_table_changes_as_pandas(table_url, starting_timestamp=start_timestamp)
+
+        for i, row in pdf.iterrows():
+            data.append(
+                {
+                    "bpm": row["bpm"],
+                }
+            ) 
+    except requests.exceptions.HTTPError as e:
+        print("Invalid parameter value error occurred. Details:")
+        print("Error Code:", e.response.json()["errorCode"])
+        print("Message:", e.response.json()["message"])
+        
+    return jsonify(data)
 
 # ======================================================================
 

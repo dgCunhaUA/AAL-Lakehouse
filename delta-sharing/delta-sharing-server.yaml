@@ -22,6 +22,9 @@ shares:
     - name: "sessions_data"
       location: "s3a://trusted-zone/trusted_sessions"
       id: "00000000-0000-0000-0000-000000000014"
+    - name: "heartpy_measures"
+      location: "s3a://trusted-zone/trusted_heartpy_measures"
+      id: "00000000-0000-0000-0000-000000000015"
 
 # Set the host name that the server will use
 host: "localhost"

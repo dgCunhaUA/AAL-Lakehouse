@@ -114,7 +114,8 @@ trusted_working_data_schema = StructType([
     StructField("sample_rate", DoubleType(), True),
     StructField("start_timestamp", TimestampType(), True),
     StructField("subject_uuid", StringType(), True),
-    StructField("video", StringType(), True)
+    StructField("video", StringType(), True),
+    StructField("ybeat", ArrayType(DoubleType(), True), True),
 ])
 (
 DeltaTable.createIfNotExists(spark)
